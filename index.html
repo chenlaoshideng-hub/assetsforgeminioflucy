@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王敏训 - Design Director Portfolio</title>
+    <!-- 引入 React 和 ReactDOM (替换为国内 CDN: Staticfile) -->
+    <script crossorigin src="https://cdn.staticfile.org/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.staticfile.org/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <!-- 引入 Babel (替换为国内 CDN) -->
+    <script src="https://cdn.staticfile.org/babel-standalone/7.22.20/babel.min.js"></script>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts 镜像 (替换为 fonts.loli.net) -->
+    <style>
+        @import url('https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans SC', sans-serif; }
+        
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* 自定义高亮样式 */
+        .highlight-text {
+            color: #2563EB; /* blue-600 */
+            font-weight: 700;
+            background-color: rgba(37, 99, 235, 0.05);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-white text-neutral-900 selection:bg-neutral-900 selection:text-white">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- 内置图标组件 ---
+        const IconBase = ({ children, size = 24, className = "", ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
+        );
+
+        const ArrowRight = (props) => <IconBase {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></IconBase>;
+        const Mail = (props) => <IconBase {...props}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></IconBase>;
+        const Phone = (props) => <IconBase {...props}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></IconBase>;
+        const MapPin = (props) => <IconBase {...props}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></IconBase>;
+        const ChevronDown = (props) => <IconBase {...props}><path d="m6 9 6 6 6-6"/></IconBase>;
+        const ChevronUp = (props) => <IconBase {...props}><path d="m18 15-6-6-6 6"/></IconBase>;
+        const ExternalLink = (props) => <IconBase {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></IconBase>;
+        const Layers = (props) => <IconBase {...props}><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></IconBase>;
+        const Users = (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></IconBase>;
+        const Zap = (props) => <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></IconBase>;
+        const Award = (props) => <IconBase {...props}><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></IconBase>;
+        const MessageSquare = (props) => <IconBase {...props}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></IconBase>;
+        const Sparkles = (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"/><path d="M5 3v4"/><path d="M9 3v4"/><path d="M3 5h4"/><path d="M3 9h4"/></IconBase>;
+        const Send = (props) => <IconBase {...props}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></IconBase>;
+        const X = (props) => <IconBase {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></IconBase>;
+        const Loader2 = (props) => <IconBase {...props}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></IconBase>;
+        const CheckCircle2 = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></IconBase>;
+        const Target = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></IconBase>;
+        const ShieldAlert = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconBase>;
+        const TrendingUp = (props) => <IconBase {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></IconBase>;
+        const Cpu = (props) => <IconBase {...props}><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3"/><path d="M15 1v3"/><path d="M9 20v3"/><path d="M15 20v3"/><path d="M20 9h3"/><path d="M20 15h3"/><path d="M1 9h3"/><path d="M1 15h3"/></IconBase>;
+        const Box = (props) => <IconBase {...props}><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></IconBase>;
+        const Activity = (props) => <IconBase {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></IconBase>;
+        const BarChart3 = (props) => <IconBase {...props}><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></IconBase>;
+        const Globe = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></IconBase>;
+        const ShieldCheck = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></IconBase>;
+        const Lightbulb = (props) => <IconBase {...props}><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-1 1.5-2.4 1.5-3.8 0-3.3-2.7-6-6-6 0 3.3-2.7 6-6 6 0 1.4.5 2.8 1.5 3.8.8.8 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></IconBase>;
+        const Upload = (props) => <IconBase {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></IconBase>;
+        const PlayCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></IconBase>;
+        const ImageIcon = (props) => <IconBase {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></IconBase>;
+        const ChevronLeft = (props) => <IconBase {...props}><path d="m15 18-6-6 6-6"/></IconBase>;
+        const ChevronRight = (props) => <IconBase {...props}><path d="m9 18 6-6-6-6"/></IconBase>;
+        const GraduationCap = (props) => <IconBase {...props}><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></IconBase>;
+        const VideoIcon = (props) => <IconBase {...props}><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/></IconBase>;
+        const Briefcase = (props) => <IconBase {...props}><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></IconBase>;
+        
+        // --- 新增图标 ---
+        const RefreshCw = (props) => <IconBase {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></IconBase>;
+        const GitMerge = (props) => <IconBase {...props}><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></IconBase>;
+        const GitPullRequest = (props) => <IconBase {...props}><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></IconBase>;
+        const Search = (props) => <IconBase {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconBase>;
+        const Quote = (props) => <IconBase {...props}><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/></IconBase>;
+
+        /**
+         * ------------------------------------------------------------------
+         * 简历数据配置
+         * ------------------------------------------------------------------
+         */
+        const DATA = {
+            profile: {
+                name: "王敏训",
+                role: "设计主管 / 设计团队管理者",
+                tagline: "致力于构建高效能设计团队，通过体系化设计策略驱动可衡量的商业价值",
+                location: "上海",
+                email: "863128170@qq.com",
+                phone: "18301923801",
+                summary: "设计驱动商业价值。我不仅关注视觉交付，更致力于构建高效能团队与体系化工作流程，将设计策略转化为可衡量的商业成果。案例横跨政务、能源、工业制造等多个B端领域。"
+            },
+            education: [
+                { 
+                    school: "东华大学", 
+                    major: "艺术设计学", 
+                    degree: "本科" 
+                },
+                { 
+                    school: "集美大学", 
+                    major: "国际航运管理", 
+                    degree: "本科",
+                    achievements: [
+                        "连续4年被评为校级“三好学生”",
+                        "连续4年每学期获得一等或二等奖学金（本专业100人左右）",
+                        "担任班级团支书一职，被评为院级“优秀共青团员”"
+                    ]
+                }
+            ],
+            // 完整工作经历（基于 PDF）- 已添加 JSX 高亮
+            workExperience: [
+                {
+                    company: "上海集妙信息科技工作室",
+                    role: "设计主管(兼主理人)",
+                    period: "2022/08-2025/12",
+                    desc: [
+                        <span>全面负责一个 <span className="highlight-text">7人全功能设计团队</span> 的日常管理、工作分配、专业指导与绩效评估,营造了积极高效的团队氛围。</span>,
+                        <span>主导建立了从需求分析到设计评审、开发对接的 <span className="highlight-text">标准化工作流程与可复用组件库</span>,将团队协作效率 <span className="highlight-text">提升约20%</span>。</span>,
+                        <span>统筹负责 <span className="highlight-text">22+个大型项目</span> (如智慧能源平台、三维动画系列)的全过程交付,客户满意度 <span className="highlight-text">超过95%</span>,设计成果多次直接助力客户赢得关键业务。</span>
+                    ]
+                },
+                {
+                    company: "联通(上海)产业互联网公司",
+                    role: "UI设计师(数字化产业部)",
+                    period: "2021/08-2022/08",
+                    desc: [
+                        <span>在国企平台深度参与 <span className="highlight-text">政务与教育领域</span> 的数字化项目,以高度的责任感和高效的执行力应对紧急任务。</span>,
+                        <span>在一年期内,主导并高质量交付 <span className="highlight-text">9个重大数据大屏</span> 与系统界面设计项目,确保了各项任务在 <span className="highlight-text">高压下的快速、精准落地</span>。</span>
+                    ]
+                },
+                {
+                    company: "上海东方延华节能技术公司",
+                    role: "UI设计师(信息化事业部)",
+                    period: "2017/05-2020/05",
+                    desc: [
+                        <span>全面负责产品 <span className="highlight-text">视觉风格定义</span>、界面设计及设计规范体系的搭建。专业表现突出,获评“年度最佳支持奖”、“年度青年标兵”并通过中级职级评审。</span>,
+                        <span>所主导的“上海排污许可证证后监管系统”的UI设计,因清晰的视觉叙事与信息架构,有效提升了监管效率,项目上线后被评为 <span className="highlight-text">集团年度十大新闻之一</span>。</span>
+                    ]
+                },
+                {
+                    company: "上海联祥生物科技有限公司",
+                    role: "UI设计师",
+                    period: "2016/01-2017/01",
+                    desc: [
+                        <span>独立负责公司官网的整体视觉设计与市场推广所需的完整视觉产出,奠定了 <span className="highlight-text">全链路设计执行能力</span> 的基础。</span>,
+                        <span>所设计的脑科门户网站有效拉动了 <span className="highlight-text">门诊咨询量</span> 的提升。</span>
+                    ]
+                }
+            ],
+            philosophy: {
+                statement: "坚信卓越的设计源于卓越的团队系统。",
+                roleDescription: "我的角色是团队的设计策略师、流程构建师与能量催化师。",
+                // 修改：融合后的核心能力数据，移除了 objectFit 属性，因为毛玻璃模式不需要强制拉伸
+                mergedCore: [
+                    { 
+                        title: "分布式团队管控", 
+                        subtitle: "Remote Leadership",
+                        desc: "统筹管理7人线上兼职团队。摒弃传统晨会，建立“异步协作+节点管控”机制。通过精准的文档流转与结果导向考核，打破时空限制，确保远程交付的高效与同频。",
+                        icon: Users,
+                        image: "assets/tuandui.jpg"
+                    },
+                    { 
+                        title: "流程构建力", 
+                        subtitle: "Process Architecture",
+                        desc: "打破设计孤岛，建立标准化工作流与组件库。主动与开发及业务方同频，推动还原度提升，协作效率提升20%。", 
+                        icon: Cpu,
+                        image: "assets/liucheng.jpg"
+                    },
+                    { 
+                        title: "商业洞察力", 
+                        subtitle: "Business Insight",
+                        desc: "不仅交付图纸，更交付商业价值。将业务目标转化为设计策略，多次直接助力客户中标及节能降耗，获高层赞许。", 
+                        icon: TrendingUp,
+                        image: "assets/dongcha.png"
+                    },
+                    { 
+                        title: "危机处理力", 
+                        subtitle: "Crisis Management",
+                        desc: "在高压下快速决策、稳定团队。在项目突发变故时，从容调度资源，成为团队的定海神针，保障最终交付。", 
+                        icon: ShieldAlert,
+                        image: "assets/weiji.jpg"
+                    }
+                ]
+            },
+            caseStudies: [
+                {
+                    id: 1,
+                    title: "从概念到中标：环境集团能碳智能调度平台",
+                    subtitle: "全流程设计管理",
+                    background: "为环境集团打造一套能碳调度系统，目标是助力其竞标“上海城投污水公司”项目。核心挑战是在短时间内打造兼具业务深度与视觉说服力的方案。",
+                    visualPreview: [
+                        { url: "assets/shijing.jpg", caption: "工厂现场实景", hideIcon: true },
+                        { url: "assets/wurenji.jpg", caption: "无人机现场采集素材", hideIcon: true }
+                    ],
+                    previewObjectFit: "cover",
+                    previewClass: "aspect-[4/3]", 
+                    strategies: [
+                        { title: "深度调研", desc: "组织团队赴污水厂实地考察，调用无人机采集数据，确保设计扎根真实业务场景。" },
+                        { title: "团队调度", desc: "领导1名UI与1名三维设计师，明确分工，制定精准到日的进度表。" },
+                        { title: "设计策略", desc: "构建“集团指挥大屏+厂站管理端”一体化方案，将复杂能源数据转化为直观地理信息叙事。" }
+                    ],
+                    value: [
+                        "直接商业成果：方案成为客户成功中标百万元级项目的核心材料。",
+                        "管理效能：通过前置调研与规范，将设计返工率降至最低。"
+                    ],
+                    tags: ["政务领域", "百万级中标", "数据可视化"],
+                    gallery: [
+                        { url: "assets/001.png", caption: "Visual Showcase: 集团指挥大屏主界面", hideIcon: true },
+                        { url: "assets/002.png", caption: "Detail View: 地理信息可视化模块", hideIcon: true },
+                        { url: "assets/003.png", caption: "System View: 厂站管理后台", hideIcon: true },
+                        { url: "assets/004.png", caption: "System View: 能源数据综合分析", hideIcon: true },
+                        { url: "assets/005.png", caption: "Detail View: Ai校验流程", hideIcon: true }
+                    ],
+                    galleryClass: "mt-8 aspect-video bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl"
+                },
+                {
+                    id: 2,
+                    title: "危机下的领导力：中央空调节能系统",
+                    subtitle: "7日极限交付",
+                    background: "碳博会开幕前7天，首发宣传视频被客户否定，项目濒临失败，团队士气受挫。",
+                    visualPreview: [
+                        { url: "assets/beijing01.jpeg", caption: "Site Photo: 碳博会现场", hideIcon: true },
+                        { 
+                            // 修改：后缀从 .jpeg 改为 .png
+                            url: "assets/beijing02.png", 
+                            caption: "Process: 实施过程",
+                            style: { objectPosition: "top", objectFit: "cover" },
+                            hideIcon: true
+                        }
+                    ],
+                    previewClass: "aspect-[4/3]",
+                    previewObjectFit: "cover",
+                    strategies: [
+                        { title: "快速诊断", desc: "立即叫停，与客户沟通明确核心问题。" },
+                        { title: "资源重整", desc: "果断更换核心剪辑师，亲自协调资源，与团队共同攻坚。" },
+                        { title: "稳定军心", desc: "明确新方向，承担决策责任，激励团队背水一战。" }
+                    ],
+                    value: [
+                        "客户认可：视频发布后，客户反馈咨询量显著提升。",
+                        "行业背书：助力客户入选《上海市绿色低碳先进技术目录》。"
+                    ],
+                    tags: ["危机公关", "展会交付", "团队激励"],
+                    gallery: [
+                        { url: "assets/001shouye.png", caption: "Visual Showcase: 节能智控系统核心监控面板", hideIcon: true },
+                        { url: "assets/002jk.png", caption: "Detail View: 冷热源系统总览", hideIcon: true },
+                        { url: "assets/003moduan.png", caption: "Event View: 图模监控", hideIcon: true },
+                        { url: "assets/004juzhen.png", caption: "System View: 冷热源系统总览", hideIcon: true },
+                        { url: "assets/005lere.png", caption: "System View: 冷热源系统详情", hideIcon: true }
+                    ],
+                    videoPlaceholder: {
+                        caption: "Project Video: 小贝产品概念发布视频",
+                        videoUrl: "https://portfolio-video-1354513467.cos.ap-shanghai.myqcloud.com/yasuoxiaobeimg.mp4  ", 
+                        // 修改：更新封面图
+                        poster: "assets/zhycover.jpg"
+                    },
+                    galleryClass: "mt-8 h-[800px] w-full bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl overflow-hidden"
+                },
+                {
+                    id: 3,
+                    title: "体系化建设：漕河泾绿色低碳智慧平台",
+                    subtitle: "长期价值创造",
+                    background: "连续服务漕河泾园区多期项目，需确保设计品牌一致性，并实现可量化的节能目标。",
+                    visualPreview: [
+                        { url: "assets/chj.jpg", caption: "初稿现场讨论", hideIcon: true },
+                        { url: "assets/chj01.jpg", caption: "园区现场照片", hideIcon: true },
+                        { url: "assets/chj02.jpg", caption: "园区现场调研", hideIcon: true }
+                    ],
+                    previewClass: "aspect-[4/3]",
+                    previewObjectFit: "cover",
+                    strategies: [
+                        { title: "设计系统搭建", desc: "建立可复用视觉规范与组件库，保障多期项目体验统一。" },
+                        { title: "多端体验设计", desc: "领导团队完成32:9大屏、16:9管理端、移动端的一体化设计。" },
+                        { title: "长期合作管理", desc: "通过高质量年度交付，与客户建立深度信任。" },
+                        { title: "技术风险规避与团队赋能", desc: "通过心态引导与专属技术支持，助资深设计师快速掌握陌生平台，化技术挑战为团队成长机遇。" }
+                    ],
+                    value: [
+                        "可量化效益：实测节电率19%、节燃气率14.6%，超额完成目标。",
+                        "品牌影响力：获《文汇报》专题报道，成为园区数字化名片。",
+                        "持续合作：高质量交付直接锁定了后续三期合作。"
+                    ],
+                    tags: ["智慧园区", "B端系统", "长期客户"],
+                    gallery: [],
+                    videoPlaceholder: {
+                        caption: "Visual Showcase: 园区3D可视化管理驾驶舱",
+                        videoUrl: "https://portfolio-video-1354513467.cos.ap-shanghai.myqcloud.com/chj.mp4",
+                        // 修改：新增封面图
+                        poster: "assets/chjcover.jpg"
+                    },
+                    galleryClass: "mt-8 aspect-video bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl"
+                },
+                {
+                    id: 4,
+                    title: "从项目执行到战略资产：上海公共机构节能宣传周",
+                    subtitle: "视觉系统长期建设",
+                    background: "连续五年服务于上海市级重大公益宣传活动。核心挑战在于：如何摆脱每年重复创意、风格不一的传统模式，将设计从一次性的项目交付，提升为可沉淀、可复用的战略视觉资产，以应对宣传任务时效紧、物料繁多（海报、手册、展架、线上图文等）的常态。",
+                    // 修改：从单张字符串改为数组，形成轮播
+                    visualPreview: [
+                        { url: "assets/xianch01.jpg", caption: "Display: 宣传物料陈列", hideIcon: true },
+                        { url: "assets/xianch02.jpg", caption: "Event Site: 活动现场氛围展示", hideIcon: true },
+                        { url: "assets/xianch03.jpg", caption: "Display: 宣传物料陈列", hideIcon: true }
+                    ],
+                    // 新增：确保轮播图填满容器
+                    previewObjectFit: "cover",
+                    previewClass: "aspect-[4/3]",
+                    strategies: [
+                        { title: "构建可持续迭代的视觉系统", desc: "主导创建了涵盖主视觉、标准色、专用字体、图标库、版式网格的完整规范。这不仅确保了历年活动品牌的一致性，更实现了“基础元素复用，年度主题微调”的高效模式。" },
+                        { title: "全流程精益管理", desc: "作为项目核心枢纽，负责从商务对接、需求精准转译，到统筹内外部设计师资源、严格把控进度与质量的全过程。建立了标准化的物料清单与审核流程，极大降低了沟通与返工成本。" },
+                        { title: "成为客户的战略伙伴", desc: "通过深度理解节能宣传的核心信息与受众，从被动执行变为主动提供创意策划与视觉解决方案，赢得了客户决策层与执行层的双重信任。" }
+                    ],
+                    value: [
+                        "效率提升与成本优化：视觉系统的建立使后续项目的启动和交付速度提升约30%，显著降低了客户长期的综合采购与管理成本。",
+                        "奠定长期合作基石：凭借超过五年的稳定、高质量交付与积极的协同沟通，获得了来自客户方CEO与市场部经理的双重认可，将合作从项目层面稳固提升至战略伙伴关系。"
+                    ],
+                    tags: ["公共事业", "品牌系统", "长期战略"],
+                    gallery: [
+                        { url: "assets/lan01.jpg", caption: "Material Collection: 线下物料应用实景", hideIcon: true },
+                        { url: "assets/lan02.jpg", caption: "Material Collection: 线下物料应用实景", hideIcon: true },
+                        { url: "assets/lan03.jpg", caption: "Material Collection: 线下物料应用实景", hideIcon: true },
+                        { url: "assets/yp.jpg", caption: "Material Collection: 线下物料应用实景", hideIcon: true }
+                    ],
+                    galleryClass: "mt-8 h-[600px] w-full bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl overflow-hidden"
+                }
+            ],
+            specialCases: [
+                {
+                    title: "浙江荣泰展厅项目——授权、兜底与团队成长",
+                    managementRule: {
+                        type: 'loop' 
+                    },
+                    isManagementHighlighted: true,
+                    showConfidential: true, // 保留保密提示
+                    situation: "授权资深设计师，其因自负导致方向偏差，引发客户投诉。",
+                    action: "采用“授权-观察-兜底-复盘”法则。迅速接管项目，重新分配任务，并将其转化为团队的学习机会。",
+                    result: "项目成功交付，一年后作品仍获客户领导好评，并带来2个新项目。证明了管理方法对团队韧性和商业延续性的价值。",
+                    gallery: [
+                        // 修改：只保留一个视频，并更新封面
+                        { type: 'video', url: "https://portfolio-video-1354513467.cos.ap-shanghai.myqcloud.com/rongtai.mp4", caption: "Video Showcase: 展厅多媒体交互", poster: "https://raw.githubusercontent.com/chenlaoshideng-hub/new/refs/heads/main/rtcover.jpg" }
+                    ],
+                    galleryClass: "mt-8 aspect-video bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl overflow-hidden"
+                },
+                {
+                    title: "智慧环卫运行生态三维宣传视频——危机干预与团队重塑",
+                    managementRule: {
+                        type: 'path'
+                    },
+                    isManagementHighlighted: true,
+                    showConfidential: false, // 移除保密提示
+                    situation: "资深设计师思维固化致方向偏差，场景复杂度超限引发硬件瓶颈，核心成员受挫退出，项目濒临停摆。",
+                    action: "精准诊断“创意+技术”双重症结。外引专家优化方案，内施心理疏导与风格纠偏，并通过客户沟通重塑交付预期。",
+                    result: "带领团队在危机中重建信心，攻克技术难关，最终高质量完成交付，验证了危机干预与资源整合的管理能力。",
+                    gallery: [
+                        // 修改：更新封面
+                        { type: 'video', url: "https://portfolio-video-1354513467.cos.ap-shanghai.myqcloud.com/03huanwei.mp4", caption: "Process Video: 团队协作与技术攻关记录", poster: "https://raw.githubusercontent.com/chenlaoshideng-hub/new/refs/heads/main/hwcover.jpg" }
+                    ]
+                }
+            ],
+            skills: {
+                management: ["团队建设", "流程优化", "项目管控", "绩效评估"],
+                domain: ["B端系统设计", "数据可视化", "设计系统", "SaaS平台"],
+                tools: ["Figma", "Sketch", "Adobe PS, AI, PDF", "C4D基础"],
+                certs: ["高级视觉界面设计师", "高级用户体验设计师", "高级UI设计师"]
+            }
+        };
+
+        // ... API Helper (Simulated) ...
+        const callGemini = async (prompt) => {
+            return new Promise(resolve => setTimeout(() => resolve("这是模拟的AI回复。在实际部署中，这里会连接到Gemini API为您提供关于项目管理和设计策略的专业解答。"), 1500));
+        };
+
+        // --- Hooks & Components ---
+
+        const useParallax = (speed = 0.1) => {
+            const [offset, setOffset] = useState(0);
+            useEffect(() => {
+                const handleScroll = () => setOffset(window.scrollY * speed);
+                window.addEventListener("scroll", handleScroll);
+                return () => window.removeEventListener("scroll", handleScroll);
+            }, [speed]);
+            return offset;
+        };
+
+        const RevealOnScroll = ({ children, delay = 0 }) => {
+            const ref = useRef(null);
+            const [isVisible, setIsVisible] = useState(false);
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    if (entry.isIntersecting) {
+                        setIsVisible(true);
+                        observer.unobserve(entry.target);
+                    }
+                }, { threshold: 0.1 });
+                if (ref.current) observer.observe(ref.current);
+                return () => { if (ref.current) observer.unobserve(ref.current); };
+            }, []);
+
+            return (
+                <div ref={ref} className={`transition-all duration-1000 ease-out transform ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`} style={{ transitionDelay: `${delay}ms` }}>
+                    {children}
+                </div>
+            );
+        };
+
+        const MagneticButton = ({ children, className, onClick, primary = false }) => {
+            const style = primary 
+                ? "bg-neutral-900 text-white border border-transparent hover:bg-black" 
+                : "bg-white text-neutral-900 border border-neutral-200 hover:bg-neutral-50";
+            return (
+                <button onClick={onClick} className={`relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 rounded-full px-8 py-3 text-sm font-bold tracking-wide flex items-center gap-2 ${style} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        // Video Component supporting Posters
+        const CarouselVideoItem = ({ item }) => {
+            const [isPlaying, setIsPlaying] = useState(false);
+            
+            // Check if it's an iframe embed link (like Google Drive or Bilibili) or a direct video file
+            const isEmbed = item.url.includes('drive.google.com') || item.url.includes('bilibili.com');
+
+            if (isPlaying || !item.poster) {
+                if (isEmbed) {
+                    return (
+                        <iframe 
+                            src={item.url} 
+                            className="w-full h-full border-0" 
+                            allow="autoplay; fullscreen"
+                            allowFullScreen
+                        ></iframe>
+                    );
+                } else {
+                    return (
+                        <video 
+                            src={item.url} 
+                            className="w-full h-full object-contain bg-black" 
+                            autoPlay 
+                            controls
+                        />
+                    );
+                }
+            }
+
+            return (
+                <div className="relative w-full h-full cursor-pointer group" onClick={(e) => { e.stopPropagation(); setIsPlaying(true); }}>
+                    <img src={item.poster} alt={item.caption} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors">
+                        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30 transition-transform group-hover:scale-110">
+                            <VideoIcon size={32} />
+                        </div>
+                    </div>
+                    {/* Caption Overlay on Poster */}
+                    {item.caption && (
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8 pointer-events-none">
+                            <div className="flex items-center gap-3 text-white">
+                                <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                    <VideoIcon size={16} />
+                                </div>
+                                <span className="font-bold tracking-wide text-sm">{item.caption}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const VideoWidget = ({ caption, videoUrl, poster, showConfidential = false }) => {
+            const [videoSrc, setVideoSrc] = useState(videoUrl || null);
+            const [showVideo, setShowVideo] = useState(false);
+            const inputRef = useRef(null);
+
+            const handleClick = () => {
+                if (videoUrl) {
+                    setShowVideo(true);
+                } else if (!videoSrc) {
+                    inputRef.current?.click();
+                }
+            };
+
+            const handleFileChange = (event) => {
+                const file = event.target.files?.[0];
+                if (file) {
+                    const url = URL.createObjectURL(file);
+                    setVideoSrc(url);
+                    setShowVideo(true);
+                }
+            };
+
+            return (
+                <div 
+                    className="mt-8 relative w-full aspect-video bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200 shadow-xl group cursor-pointer"
+                    onClick={handleClick}
+                >
+                    {!videoUrl && (
+                        <input 
+                            type="file" 
+                            accept="video/*" 
+                            ref={inputRef} 
+                            className="hidden" 
+                            onChange={handleFileChange} 
+                        />
+                    )}
+                    
+                    {/* Add Confidential Badge if enabled */}
+                    {showConfidential && <ConfidentialBadge />}
+
+                    {showVideo ? (
+                        (videoSrc.includes('drive.google.com') || videoSrc.includes('bilibili.com')) ? (
+                             <iframe 
+                                src={videoSrc} 
+                                className="w-full h-full border-0" 
+                                allow="autoplay; fullscreen"
+                                allowFullScreen
+                            ></iframe>
+                        ) : (
+                            <video 
+                                src={videoSrc} 
+                                controls 
+                                className="w-full h-full object-contain bg-black" 
+                                autoPlay 
+                            />
+                        )
+                    ) : (
+                        <>
+                            {poster ? (
+                                <img src={poster} alt="Video Cover" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                            ) : (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-neutral-400 bg-neutral-50 hover:bg-neutral-100 transition-colors duration-500">
+                                </div>
+                            )}
+                            
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center text-white">
+                                <span className="text-xs font-bold tracking-widest uppercase opacity-80 group-hover:opacity-100">
+                                    {videoUrl ? "Click to Play Video" : "Click to Upload Video"}
+                                </span>
+                            </div>
+
+                            <div className="absolute bottom-8 left-8 bg-white/90 backdrop-blur-md border border-neutral-200 px-4 py-2 rounded-full shadow-sm flex items-center gap-2">
+                                <span className="text-xs font-bold text-neutral-900">{caption}</span>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        // 新增：右下角保密提示组件
+        const ConfidentialBadge = () => (
+            <div className="absolute bottom-4 right-4 z-30 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 shadow-lg pointer-events-none">
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                </span>
+                <span className="text-[10px] font-medium text-white/95 tracking-wide">因保密需求，仅展示部分作品</span>
+            </div>
+        );
+
+        // 升级版 MediaCarousel (Updated to support video covers)
+        const MediaCarousel = ({ images, className = "mt-8 aspect-[21/9] bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl", objectFit = "contain", showConfidential = false }) => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const prevSlide = (e) => { e.stopPropagation(); setCurrentIndex(currentIndex === 0 ? images.length - 1 : currentIndex - 1); };
+            const nextSlide = (e) => { e.stopPropagation(); setCurrentIndex(currentIndex === images.length - 1 ? 0 : currentIndex + 1); };
+            const goToSlide = (slideIndex, e) => { e.stopPropagation(); setCurrentIndex(slideIndex); };
+
+            if (!images || images.length === 0) return null;
+
+            return (
+                <div className={`relative w-full overflow-hidden group select-none ${className}`}>
+                    
+                    {/* Add Confidential Badge if enabled */}
+                    {showConfidential && <ConfidentialBadge />}
+
+                    {images.map((item, index) => (
+                        <div key={index} className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"}`}>
+                            
+                            {item.type === 'video' ? (
+                                <CarouselVideoItem item={item} />
+                            ) : (
+                                <img 
+                                    src={item.url} 
+                                    alt={item.caption} 
+                                    className={`w-full h-full ${objectFit === 'cover' ? 'object-cover' : 'object-contain bg-neutral-50 p-0'}`}
+                                    style={item.style || {}} 
+                                />
+                            )}
+
+                            {/* Caption for Images (Video caption is handled inside CarouselVideoItem to avoid double overlay) */}
+                            {item.caption && item.type !== 'video' && (
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8 pointer-events-none">
+                                    <div className="flex items-center gap-3 text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                        {!item.hideIcon && (
+                                            <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                                <ImageIcon size={16} />
+                                            </div>
+                                        )}
+                                        <span className="font-bold tracking-wide text-sm">{item.caption}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    {images.length > 1 && (
+                        <>
+                            <button onClick={prevSlide} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/30 backdrop-blur-md text-white flex items-center justify-center hover:bg-white hover:text-black transition-all opacity-0 group-hover:opacity-100"><ChevronLeft size={16} /></button>
+                            <button onClick={nextSlide} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white/30 backdrop-blur-md text-white flex items-center justify-center hover:bg-white hover:text-black transition-all opacity-0 group-hover:opacity-100"><ChevronRight size={16} /></button>
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+                                {images.map((_, slideIndex) => (
+                                    <div key={slideIndex} onClick={(e) => goToSlide(slideIndex, e)} className={`w-1.5 h-1.5 rounded-full cursor-pointer transition-all duration-300 ${currentIndex === slideIndex ? "bg-white w-4" : "bg-white/50 hover:bg-white/80"}`}></div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        };
+
+        // --- NEW: Merged Philosophy Card Component (白色毛玻璃弥散 - 高透版 + 悬停背景色块) ---
+        const MergedPhilosophyGallery = ({ items }) => {
+            return (
+                <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                    {items.map((item, index) => (
+                        <div key={index} className="group relative w-full h-[400px] bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-xl cursor-default">
+                             
+                             {/* Layer 1: Ambient Background (Blurred) */}
+                             <div className="absolute inset-0 z-0 overflow-hidden">
+                                <img 
+                                    src={item.image} 
+                                    alt="ambient background" 
+                                    className="w-full h-full object-cover opacity-20 blur-[30px] scale-125 saturate-150" 
+                                />
+                                <div className="absolute inset-0 bg-white/40"></div>
+                             </div>
+
+                             {/* Layer 2: Main Image (Contained) */}
+                             <div className="absolute inset-0 z-10 p-6 pb-24 flex items-center justify-center">
+                                <img 
+                                    src={item.image} 
+                                    alt={item.title} 
+                                    className="w-full h-full object-contain drop-shadow-xl transition-transform duration-700 group-hover:scale-105" 
+                                />
+                             </div>
+                            
+                            {/* Layer 3: Static White Gradient Overlay - Fades out on hover */}
+                            {/* 默认显示渐变，悬停时淡出(opacity-0)，因为实体背景色块会出现 */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/5 to-transparent z-20 pointer-events-none transition-opacity duration-300 group-hover:opacity-0"></div>
+
+                            {/* Top Right Icon */}
+                            <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/80 backdrop-blur-md border border-neutral-200 flex items-center justify-center text-neutral-900 shadow-sm group-hover:bg-neutral-900 group-hover:text-white transition-all duration-300 z-30">
+                                <item.icon size={24} />
+                            </div>
+
+                            {/* Content Layer - 这里的改动最大 */}
+                            {/* 改为 absolute bottom-0，悬停时增加 bg-white/50 背景色 */}
+                            <div className="absolute bottom-0 left-0 w-full p-8 flex flex-col z-30 transition-all duration-500 group-hover:bg-white/50 group-hover:backdrop-blur-md group-hover:shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                                {/* Subtitle */}
+                                <p className="text-blue-600 text-xs font-bold uppercase tracking-widest mb-2 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                                    {item.subtitle}
+                                </p>
+
+                                {/* Title */}
+                                <h3 className="text-neutral-900 text-3xl font-black mb-0 translate-y-2 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                                    {item.title}
+                                </h3>
+
+                                {/* Description - Expands and pushes title up */}
+                                <div className="relative overflow-hidden">
+                                     <div className="h-0 opacity-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-500 ease-out">
+                                        <p className="text-neutral-600 text-sm leading-relaxed border-t border-neutral-200 pt-4 mt-4 font-medium">
+                                            {item.desc}
+                                        </p>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        };
+        
+        // --- NEW: Visualizer Component 1 - Execution Loop (Dark Mode Adapted) ---
+        const ExecutionLoopVisualizer = () => {
+            const steps = [
+                { id: '01', title: '授权', en: 'Authorize', icon: Users, desc: '给予信任，下放权限，明确边界与目标。', color: 'text-sky-400', border: 'border-sky-500/20', bg: 'bg-sky-500/5', shadow: 'hover:shadow-sky-500/10' },
+                { id: '02', title: '观察', en: 'Observe', icon: Activity, desc: '过程监控，数据追踪，识别潜在风险。', color: 'text-sky-400', border: 'border-sky-500/20', bg: 'bg-sky-500/5', shadow: 'hover:shadow-sky-500/10' },
+                { id: '03', title: '兜底', en: 'Fallback', icon: ShieldAlert, desc: '风险阻断，介入补位，确保最低水位。', color: 'text-sky-400', border: 'border-sky-500/20', bg: 'bg-sky-500/5', shadow: 'hover:shadow-sky-500/10' },
+                { id: '04', title: '复盘', en: 'Review', icon: RefreshCw, desc: '经验沉淀，机制优化，SOP迭代。', color: 'text-sky-400', border: 'border-sky-500/20', bg: 'bg-sky-500/5', shadow: 'hover:shadow-sky-500/10' },
+            ];
+
+            return (
+                <div className="w-full mb-12">
+                     <div className="text-xs font-bold text-sky-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-4 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                        Management Methodology: Execution Loop
+                    </div>
+                    <div className="relative grid grid-cols-1 md:grid-cols-4 gap-4 z-10">
+                        {/* Background connection line */}
+                         <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-sky-900/50 via-sky-500/50 to-sky-900/50 hidden md:block -z-10"></div>
+                         
+                         {/* Desktop Arrows */}
+                         <div className="hidden md:block absolute top-1/2 -translate-y-1/2 left-[23%] z-0 text-sky-900/50">
+                            <ChevronRight size={40} />
+                         </div>
+                         <div className="hidden md:block absolute top-1/2 -translate-y-1/2 left-[48%] z-0 text-sky-900/50">
+                            <ChevronRight size={40} />
+                         </div>
+                         <div className="hidden md:block absolute top-1/2 -translate-y-1/2 left-[73%] z-0 text-sky-900/50">
+                            <ChevronRight size={40} />
+                         </div>
+
+                        {steps.map((step, i) => (
+                            <div key={i} className={`group relative p-6 rounded-xl border ${step.border} ${step.bg} backdrop-blur-sm transition-all duration-300 hover:-translate-y-2 hover:bg-sky-500/10 ${step.shadow} shadow-lg z-10`}>
+                                <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full border border-white/5 bg-neutral-900 flex items-center justify-center text-xs font-bold ${step.color} shadow-sm z-20`}>{step.id}</div>
+                                <div className={`mb-4 ${step.color}`}>
+                                    <step.icon size={28} />
+                                </div>
+                                <h4 className={`text-lg font-bold mb-1 text-white group-hover:text-sky-300 transition-colors`}>{step.title}</h4>
+                                <p className={`text-[10px] font-mono uppercase mb-2 opacity-60 ${step.color}`}>{step.en}</p>
+                                <p className="text-xs text-neutral-400 leading-relaxed border-t border-white/5 pt-2">{step.desc}</p>
+                                
+                                {/* Mobile Arrow */}
+                                {i < steps.length - 1 && (
+                                    <div className="md:hidden flex justify-center mt-4 text-sky-900/50">
+                                        <ChevronDown size={24} />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- NEW: Visualizer Component 2 - Intervention Path (Dark Mode Adapted) ---
+        const InterventionPathVisualizer = () => {
+             const steps = [
+                { id: '1', title: '诊断', en: 'Diagnose', icon: Search, desc: '剖析现状，定位痛点与根因。', theme: 'amber' },
+                { id: '2', title: '引入', en: 'Introduce', icon: GitMerge, desc: '注入新变量、工具或方法论。', theme: 'amber' },
+                { id: '3', title: '疏导', en: 'Channel', icon: GitPullRequest, desc: '解决阻力，理顺逻辑，情绪引导。', theme: 'orange' },
+                { id: '4', title: '重塑', en: 'Reshape', icon: Box, desc: '建立新秩序，固化新模式。', theme: 'orange' },
+            ];
+            
+            // Helper for dynamic colors
+            const getThemeClass = (theme, type) => {
+                if(theme === 'amber') {
+                    if(type === 'icon') return 'text-amber-400';
+                    if(type === 'bg') return 'bg-amber-500/5 border-amber-500/20 hover:shadow-amber-500/10 hover:bg-amber-500/10';
+                    if(type === 'line') return 'from-amber-500/50 to-amber-500';
+                    if(type === 'arrow') return 'text-amber-500';
+                }
+                if(theme === 'orange') {
+                    if(type === 'icon') return 'text-orange-400';
+                    if(type === 'bg') return 'bg-orange-500/5 border-orange-500/20 hover:shadow-orange-500/10 hover:bg-orange-500/10';
+                    if(type === 'line') return 'from-amber-500 to-orange-500';
+                    if(type === 'arrow') return 'text-orange-500';
+                }
+                return '';
+            }
+
+            return (
+                 <div className="w-full mb-12">
+                     <div className="text-xs font-bold text-amber-500 uppercase tracking-widest mb-6 border-b border-white/10 pb-4 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        Management Methodology: Intervention Path
+                    </div>
+                    <div className="flex flex-col md:flex-row gap-4 relative">
+                        {steps.map((step, i) => (
+                            <div key={i} className={`flex-1 group relative p-6 rounded-xl border backdrop-blur-sm transition-all duration-300 hover:scale-105 ${getThemeClass(step.theme, 'bg')}`}>
+                                {/* Connector Line with Arrow */}
+                                {i < steps.length - 1 && (
+                                    <>
+                                        <div className="hidden md:flex absolute top-1/2 -right-6 w-8 h-4 z-0 items-center justify-center transform -translate-y-1/2">
+                                             <div className={`w-full h-px bg-gradient-to-r ${getThemeClass(steps[i+1].theme, 'line')} rounded-full`}></div>
+                                             <ChevronRight size={16} className={`${getThemeClass(step.theme, 'arrow')} -ml-1`} />
+                                        </div>
+                                        <div className="md:hidden absolute bottom-0 left-1/2 w-4 h-6 -mb-6 z-0 transform -translate-x-1/2 flex flex-col items-center justify-center">
+                                            <div className={`h-full w-px bg-gradient-to-b ${getThemeClass(steps[i+1].theme, 'line')} rounded-full`}></div>
+                                            <ChevronDown size={16} className={`${getThemeClass(step.theme, 'arrow')} -mt-1`} />
+                                        </div>
+                                    </>
+                                )}
+                                
+                                <div className={`w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center mb-4 ${getThemeClass(step.theme, 'icon')}`}>
+                                    <step.icon size={20} />
+                                </div>
+                                <h4 className="text-lg font-bold text-white mb-1 group-hover:text-white/90 transition-colors">{step.title}</h4>
+                                <p className={`text-[10px] font-mono uppercase mb-3 opacity-60 ${getThemeClass(step.theme, 'icon')}`}>{step.en}</p>
+                                <p className="text-xs text-neutral-400 leading-relaxed">{step.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Modified: Smart Visualizer Dispatcher ---
+        const ManagementRuleVisualizer = ({ rule }) => {
+            if (rule.type === 'loop') {
+                return <ExecutionLoopVisualizer />;
+            } else if (rule.type === 'path') {
+                return <InterventionPathVisualizer />;
+            }
+            return null; // Fallback or empty if no specific visualizer needed
+        };
+
+        const AIChatWidget = () => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [messages, setMessages] = useState([{ role: 'assistant', text: '你好！我是王敏训的 AI 数字分身。您可以询问我的管理哲学或项目经验。' }]);
+            const [input, setInput] = useState("");
+            const [loading, setLoading] = useState(false);
+            const messagesEndRef = useRef(null);
+            useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, isOpen]);
+            const handleSend = async () => {
+                if (!input.trim() || loading) return;
+                const userMsg = input; setInput(""); setMessages(prev => [...prev, { role: 'user', text: userMsg }]); setLoading(true);
+                const reply = await callGemini(userMsg);
+                setMessages(prev => [...prev, { role: 'assistant', text: reply }]); setLoading(false);
+            };
+            return (
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end font-sans">
+                    {isOpen && (
+                        <div className="bg-white border border-neutral-200 shadow-2xl rounded-2xl w-80 md:w-96 mb-4 overflow-hidden flex flex-col h-[500px] animate-in slide-in-from-bottom-10 fade-in duration-300">
+                            <div className="bg-neutral-900 text-white p-4 flex justify-between items-center">
+                                <div className="flex items-center gap-2"><Sparkles size={16} className="text-neutral-400" /><span className="font-bold text-sm">AI Consultant</span></div>
+                                <button onClick={() => setIsOpen(false)} className="hover:text-neutral-300"><X size={18} /></button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-4 bg-white space-y-4">
+                                {messages.map((msg, idx) => (
+                                    <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[85%] p-3.5 rounded-2xl text-sm leading-relaxed font-medium ${msg.role === 'user' ? 'bg-neutral-900 text-white rounded-br-none' : 'bg-neutral-50 text-neutral-800 rounded-bl-none'}`}>{msg.text}</div>
+                                    </div>
+                                ))}
+                                {loading && <div className="flex justify-start"><div className="bg-neutral-50 p-3 rounded-2xl rounded-bl-none"><Loader2 size={16} className="animate-spin text-neutral-400" /></div></div>}
+                                <div ref={messagesEndRef} />
+                            </div>
+                            <div className="p-4 bg-white border-t border-neutral-100">
+                                <div className="flex items-center gap-2">
+                                    <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend()} placeholder="Ask anything..." className="flex-1 bg-neutral-50 border border-transparent rounded-full px-4 py-2 text-sm focus:outline-none focus:bg-white focus:border-neutral-200 transition-all font-medium text-neutral-900" />
+                                    <button onClick={handleSend} disabled={loading || !input.trim()} className="w-8 h-8 bg-neutral-900 text-white rounded-full flex items-center justify-center disabled:opacity-50 transition-all"><Send size={14} /></button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <button onClick={() => setIsOpen(!isOpen)} className="group relative flex items-center justify-center w-14 h-14 bg-neutral-900 text-white rounded-full shadow-xl hover:scale-110 transition-all duration-300">
+                        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+                    </button>
+                </div>
+            );
+        };
+
+        const SmartProposal = () => {
+            const [projectInput, setProjectInput] = useState("");
+            const [proposal, setProposal] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const generateProposal = async () => {
+                if (!projectInput.trim()) return;
+                setLoading(true);
+                const result = await callGemini(`需求: ${projectInput}`);
+                setProposal(result); setLoading(false);
+            };
+            return (
+                <div className="mt-12 bg-neutral-50 p-8 rounded-2xl border border-neutral-100 text-left max-w-3xl mx-auto">
+                    <div className="flex items-center gap-2 mb-4 text-neutral-900"><Sparkles size={20} /><h3 className="text-lg font-bold">AI 智能合作提案</h3></div>
+                    <p className="font-medium mb-6 text-sm text-neutral-500">输入您的项目类型（如：能源大屏竞标），AI 将基于我的过往案例生成专属策略。</p>
+                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                        <input value={projectInput} onChange={(e) => setProjectInput(e.target.value)} placeholder="例如：智慧城市大屏..." className="flex-1 bg-white border border-neutral-200 rounded-lg px-4 py-3 placeholder-neutral-400 font-medium focus:outline-none focus:border-neutral-900 transition-all text-neutral-900" />
+                        <button onClick={generateProposal} disabled={loading || !projectInput.trim()} className="bg-neutral-900 text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-50 whitespace-nowrap transition-all hover:bg-black">{loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}{loading ? "生成中..." : "获取策略"}</button>
+                    </div>
+                    {proposal && <div className="bg-white rounded-lg p-6 border border-neutral-200 animate-in fade-in slide-in-from-top-4 duration-500 shadow-sm"><div className="flex gap-4"><div className="min-w-[40px] h-[40px] rounded-full bg-neutral-100 flex items-center justify-center text-xl">🚀</div><p className="leading-relaxed text-sm md:text-base font-medium text-neutral-700">{proposal}</p></div></div>}
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [isMenuOpen, setIsMenuOpen] = useState(false);
+            const heroParallax = useParallax(0.2);
+            const scrollToSection = (id) => {
+                const element = document.getElementById(id);
+                if (element) { element.scrollIntoView({ behavior: 'smooth' }); setIsMenuOpen(false); }
+            };
+
+            return (
+                <div className="min-h-screen font-sans bg-white text-neutral-900 selection:bg-neutral-900 selection:text-white">
+                    <AIChatWidget />
+                    {/* Background Decor */}
+                    <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#e5e5e5 1px, transparent 1px)', backgroundSize: '40px 40px' }}></div>
+
+                    {/* Nav */}
+                    <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 transition-all duration-300">
+                        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <div className="text-xl font-bold tracking-tighter cursor-pointer flex items-center gap-2 group" onClick={() => window.scrollTo({top:0, behavior:'smooth'})}>
+                                <span className="group-hover:text-neutral-500 transition-colors">WANG MINXUN</span>
+                                <div className="w-2 h-2 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </div>
+                            <div className="hidden md:flex space-x-8 text-sm font-bold text-neutral-500">
+                                {[{ name: '管理哲学', id: 'philosophy' }, { name: '核心案例', id: 'cases' }, { name: '工作经历', id: 'experience' }, { name: '管理法则', id: 'management' }, { name: '专业技能', id: 'skills' }, { name: '联系我', id: 'contact' }].map((item) => (
+                                    <button key={item.name} onClick={() => scrollToSection(item.id)} className="hover:text-black transition-colors">{item.name}</button>
+                                ))}
+                            </div>
+                            <button className="md:hidden p-2" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                                <div className="w-6 h-0.5 bg-black mb-1.5"></div><div className="w-6 h-0.5 bg-black mb-1.5"></div><div className="w-6 h-0.5 bg-black"></div>
+                            </button>
+                        </div>
+                        {isMenuOpen && (
+                            <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b border-neutral-100 p-6 flex flex-col space-y-4 shadow-lg animate-in slide-in-from-top-5">
+                                {[{ name: '管理哲学', id: 'philosophy' }, { name: '核心案例', id: 'cases' }, { name: '工作经历', id: 'experience' }, { name: '管理法则', id: 'management' }, { name: '专业技能', id: 'skills' }, { name: '联系我', id: 'contact' }].map((item) => (
+                                    <button key={item.name} onClick={() => scrollToSection(item.id)} className="text-left text-lg font-medium text-neutral-800">{item.name}</button>
+                                ))}
+                            </div>
+                        )}
+                    </nav>
+
+                    {/* Hero */}
+                    <header className="relative pt-40 pb-20 md:pt-60 md:pb-32 px-6 max-w-7xl mx-auto z-10">
+                        <div style={{ transform: `translateY(${heroParallax}px)` }} className="grid md:grid-cols-2 gap-16 items-center">
+                            <div className="order-2 md:order-1 text-center md:text-left">
+                                <RevealOnScroll>
+                                    <p className="font-bold text-sm tracking-widest uppercase text-neutral-400 mb-6">{DATA.profile.role}</p>
+                                </RevealOnScroll>
+                                <RevealOnScroll delay={200}>
+                                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-black leading-[1.1] tracking-tight mb-8 text-neutral-900">
+                                        Design Driving <br />
+                                        <span className="text-neutral-300">Business Value.</span>
+                                    </h1>
+                                </RevealOnScroll>
+                                <RevealOnScroll delay={400}>
+                                    <p className="max-w-xl text-lg md:text-xl font-medium leading-relaxed mb-10 text-neutral-600 md:mr-auto mx-auto md:mx-0">{DATA.profile.tagline}</p>
+                                </RevealOnScroll>
+                                <RevealOnScroll delay={600}>
+                                    <div className="flex flex-col md:items-start items-center gap-6">
+                                        <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                                            <MagneticButton primary onClick={() => scrollToSection('cases')}>VIEW WORK <ArrowRight size={16} /></MagneticButton>
+                                            <MagneticButton onClick={() => scrollToSection('contact')}>CONTACT ME</MagneticButton>
+                                        </div>
+                                    </div>
+                                </RevealOnScroll>
+                            </div>
+                            <div className="order-1 md:order-2 flex justify-center md:justify-end">
+                                <RevealOnScroll delay={300}>
+                                    <div className="relative w-[320px] h-[400px] md:w-[400px] md:h-[500px] bg-neutral-100 rounded-[40px] group cursor-pointer overflow-hidden border border-neutral-200 shadow-2xl">
+                                         {/* Actual Image */}
+                                        <img 
+                                            src="https://raw.githubusercontent.com/chenlaoshideng-hub/new/refs/heads/main/people.png" 
+                                            alt="Wang Minxun" 
+                                            className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105" 
+                                        />
+                                        
+                                        {/* Overlays */}
+                                        <div className="absolute top-8 right-0 bg-neutral-900 text-white py-2 px-6 rounded-l-full shadow-lg">
+                                            <span className="text-xs font-bold tracking-wider">Design Director</span>
+                                        </div>
+                                        <div className="absolute bottom-8 left-8 right-8 bg-white/90 backdrop-blur-md border border-neutral-200 p-6 rounded-2xl shadow-lg">
+                                            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-3">Experience & Data</p>
+                                            <div className="grid grid-cols-3 gap-4">
+                                                <div className="flex flex-col items-start">
+                                                    <span className="text-3xl font-black text-neutral-900">7+</span>
+                                                    <span className="text-[10px] font-bold text-neutral-500 uppercase">Years Exp</span>
+                                                </div>
+                                                <div className="flex flex-col items-start border-l border-neutral-200 pl-4">
+                                                    <span className="text-3xl font-black text-neutral-900">7</span>
+                                                    <span className="text-[10px] font-bold text-neutral-500 uppercase">Team Size</span>
+                                                </div>
+                                                <div className="flex flex-col items-start border-l border-neutral-200 pl-4">
+                                                    <span className="text-3xl font-black text-neutral-900">70+</span>
+                                                    <span className="text-[10px] font-bold text-neutral-500 uppercase">Projects</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </RevealOnScroll>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Philosophy */}
+                    <section id="philosophy" className="py-24 border-y border-neutral-100 bg-neutral-50/50">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <RevealOnScroll>
+                                <div className="max-w-4xl mx-auto text-center mb-16">
+                                    <h2 className="text-3xl font-black mb-8">Management Philosophy</h2>
+                                    <div className="py-4">
+                                        <p className="text-xl md:text-2xl text-neutral-800 leading-relaxed font-sans mb-2">{DATA.philosophy.statement}</p>
+                                        <p className="text-lg md:text-xl text-neutral-600 leading-relaxed font-sans">{DATA.philosophy.roleDescription}</p>
+                                    </div>
+                                </div>
+                            </RevealOnScroll>
+                            
+                            {/* Modified: Merged Capabilities & Gallery */}
+                            <RevealOnScroll delay={200}>
+                                <div className="text-center mb-8">
+                                    <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400">Core Capabilities in Action</h3>
+                                </div>
+                                {/* 使用新的组件渲染融合后的数据 */}
+                                <MergedPhilosophyGallery items={DATA.philosophy.mergedCore} />
+                            </RevealOnScroll>
+                        </div>
+                    </section>
+
+                    {/* Cases */}
+                    <section id="cases" className="py-24 md:py-32 max-w-7xl mx-auto px-6">
+                        <RevealOnScroll>
+                            <h2 className="text-3xl md:text-4xl font-black mb-16">Core Case Studies <span className="font-normal text-neutral-400 ml-2 text-2xl">/ Strategy & Leadership</span></h2>
+                        </RevealOnScroll>
+                        <div className="space-y-24">
+                            {DATA.caseStudies.map((project, index) => (
+                                <div key={index}>
+                                    <RevealOnScroll delay={index * 100}>
+                                        <div className="group border-t border-neutral-200 pt-12">
+                                            <div className="flex flex-col md:flex-row justify-between md:items-end mb-12 gap-6">
+                                                <div>
+                                                    <div className="flex gap-2 mb-4">
+                                                        {project.tags.map(tag => (<span key={tag} className="text-xs font-bold uppercase tracking-wider border border-neutral-200 px-3 py-1 rounded-full text-neutral-500">{tag}</span>))}
+                                                    </div>
+                                                    <h3 className="text-3xl md:text-5xl font-black mb-2">{project.title}</h3>
+                                                    <p className="text-xl md:text-2xl font-medium text-neutral-500">{project.subtitle}</p>
+                                                </div>
+                                                <div className="text-8xl font-black text-neutral-100 hidden lg:block">0{project.id}</div>
+                                            </div>
+                                            <div className="grid md:grid-cols-3 gap-12">
+                                                <div className="md:col-span-1 space-y-6">
+                                                    <div>
+                                                        <h4 className="font-bold mb-2 flex items-center gap-2"><Target size={18}/> 背景与挑战</h4>
+                                                        <p className="text-sm text-neutral-600 leading-relaxed">{project.background}</p>
+                                                    </div>
+                                                    
+                                                    {/* Conditional Rendering for Visual Preview */}
+                                                    {project.visualPreview ? (
+                                                        Array.isArray(project.visualPreview) ? (
+                                                            // Reuse MediaCarousel but with specific small styling + Confidential Badge
+                                                            <MediaCarousel 
+                                                                images={project.visualPreview.map(urlObj => typeof urlObj === 'string' ? {url: urlObj} : urlObj)}
+                                                                className={`mt-4 bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 shadow-sm ${project.previewClass || "aspect-video"}`}
+                                                                objectFit={project.previewObjectFit || "cover"}
+                                                                // Removed showConfidential={true} as requested
+                                                            />
+                                                        ) : (
+                                                            <div className="aspect-video bg-neutral-100 rounded-lg overflow-hidden border border-neutral-200 relative">
+                                                                <img src={project.visualPreview} alt="Visual Simulation" className="w-full h-full object-cover" />
+                                                                {/* Removed Badge for Single Image as requested */}
+                                                            </div>
+                                                        )
+                                                    ) : (
+                                                        <div className="aspect-video bg-neutral-100 rounded-lg flex items-center justify-center border border-neutral-200">
+                                                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest">Visual Simulation</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="md:col-span-1">
+                                                    <h4 className="font-bold mb-6 flex items-center gap-2"><Layers size={18}/> 我的角色与策略</h4>
+                                                    <ul className="space-y-6 border-l border-neutral-200 pl-6">
+                                                        {project.strategies.map((strat, i) => (
+                                                            <li key={i} className="relative">
+                                                                <strong className="block text-sm font-bold mb-1">{strat.title}</strong>
+                                                                <span className="text-sm text-neutral-600 leading-relaxed">{strat.desc}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                                <div className="md:col-span-1 bg-neutral-50 p-8 rounded-xl border border-neutral-100">
+                                                    <h4 className="font-bold mb-6 flex items-center gap-2"><TrendingUp size={18}/> 价值验证</h4>
+                                                    <ul className="space-y-4">
+                                                        {project.value.map((val, i) => (
+                                                            <li key={i} className="flex items-start gap-3 text-sm leading-relaxed text-neutral-700">
+                                                                <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-neutral-900" /><span>{val}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </RevealOnScroll>
+                                    
+                                    {/* Video Placeholder if exists + Confidential Badge */}
+                                    {project.videoPlaceholder && (
+                                        <RevealOnScroll delay={200}>
+                                            <VideoWidget 
+                                                caption={project.videoPlaceholder.caption} 
+                                                videoUrl={project.videoPlaceholder.videoUrl}
+                                                poster={project.videoPlaceholder.poster}
+                                                showConfidential={true} // Add Badge here
+                                            />
+                                        </RevealOnScroll>
+                                    )}
+
+                                    {/* Media Carousel + Confidential Badge */}
+                                    {project.gallery && project.gallery.length > 0 && (
+                                        <RevealOnScroll delay={200}>
+                                            <MediaCarousel 
+                                                images={project.gallery} 
+                                                className={project.galleryClass} // Use custom class if provided, else default
+                                                showConfidential={true} // Add Badge here
+                                            />
+                                        </RevealOnScroll>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* NEW: Work Experience Section */}
+                    <section id="experience" className="py-24 bg-neutral-50">
+                        <div className="max-w-7xl mx-auto px-6">
+                            <RevealOnScroll>
+                                <h2 className="text-3xl md:text-4xl font-black mb-16 text-center">Work Experience <span className="font-normal text-neutral-400 ml-2 text-2xl">/ Career Path</span></h2>
+                                <div className="max-w-4xl mx-auto relative pl-8 md:pl-12 border-l-2 border-neutral-200 space-y-12">
+                                    {DATA.workExperience.map((job, index) => (
+                                        <div key={index} className="relative">
+                                            {/* Timeline Dot */}
+                                            <div className="absolute -left-[41px] md:-left-[57px] top-1.5 w-4 h-4 rounded-full bg-neutral-900 ring-4 ring-white border border-neutral-200"></div>
+                                            
+                                            <div className="flex flex-col md:flex-row md:items-baseline gap-2 mb-2">
+                                                <h3 className="text-xl font-bold text-neutral-900">{job.role}</h3>
+                                                <span className="text-neutral-500 font-medium">@ {job.company}</span>
+                                                <span className="md:ml-auto text-sm font-bold text-neutral-400 bg-white border border-neutral-200 px-3 py-1 rounded-full whitespace-nowrap">
+                                                    {job.period}
+                                                </span>
+                                            </div>
+                                            {/* Render desc as list with highlighting */}
+                                            <ul className="text-neutral-600 leading-relaxed text-sm max-w-3xl space-y-2">
+                                                {job.desc.map((point, i) => (
+                                                    <li key={i} className="flex items-start gap-2">
+                                                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-neutral-300 shrink-0"></span>
+                                                        <span>{point}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </RevealOnScroll>
+                        </div>
+                    </section>
+
+                    {/* Management */}
+                    <section id="management" className="py-24 bg-neutral-900 text-white">
+                        <div className="max-w-5xl mx-auto px-6">
+                            <RevealOnScroll>
+                                <h2 className="text-3xl font-black mb-12 text-center">Special Management Case <br/><span className="text-lg font-bold text-neutral-500">Soft Skills in Action</span></h2>
+                                {DATA.specialCases.map((caseItem, idx) => (
+                                    <div key={idx} className="mb-24 last:mb-0">
+                                        <div className="border border-white/20 rounded-3xl p-8 md:p-12 relative overflow-hidden mb-12">
+                                            <h3 className="text-2xl font-bold mb-4">{caseItem.title}</h3>
+                                            
+                                            {/* Modified: Management Rule Visualization Component */}
+                                            <ManagementRuleVisualizer rule={caseItem.managementRule} />
+
+                                            <div className="grid md:grid-cols-3 gap-8 mt-8 border-t border-white/10 pt-8">
+                                                {[
+                                                    { step: "01", title: "情境 (Situation)", text: caseItem.situation },
+                                                    { step: "02", title: "行动 (Action)", text: caseItem.action },
+                                                    { step: "03", title: "成果 (Result)", text: caseItem.result }
+                                                ].map((item, i) => (
+                                                    <div key={i} className="bg-white/5 p-6 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
+                                                        <div className="text-4xl font-black text-neutral-700 mb-4">{item.step}</div>
+                                                        <h4 className="font-bold mb-2 text-white">{item.title}</h4>
+                                                        <p className="text-sm text-neutral-400 leading-relaxed">{item.text}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <RevealOnScroll delay={200}>
+                                            <MediaCarousel 
+                                                images={caseItem.gallery} 
+                                                className={caseItem.galleryClass || "mt-8 aspect-video bg-neutral-100 rounded-xl border border-neutral-200 shadow-xl overflow-hidden"} 
+                                                showConfidential={caseItem.showConfidential} // 修改：改为动态读取字段
+                                            />
+                                        </RevealOnScroll>
+                                    </div>
+                                ))}
+                            </RevealOnScroll>
+                        </div>
+                    </section>
+
+                    {/* Skills */}
+                    <section id="skills" className="py-24 max-w-7xl mx-auto px-6">
+                        <RevealOnScroll>
+                            <div className="grid md:grid-cols-2 gap-16">
+                                <div>
+                                    <h2 className="text-3xl font-black mb-8">Professional Skills</h2>
+                                    <div className="space-y-8">
+                                        {[
+                                            { title: "Design Management", items: DATA.skills.management },
+                                            { title: "Domain Expertise", items: DATA.skills.domain },
+                                            { title: "Tools & Certs", items: [...DATA.skills.tools, ...DATA.skills.certs] }
+                                        ].map((skillGroup, idx) => (
+                                            <div key={idx}>
+                                                <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-4">{skillGroup.title}</h3>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {skillGroup.items.map(s => (<span key={s} className="px-4 py-2 bg-neutral-100 rounded-lg text-sm font-bold text-neutral-700">{s}</span>))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div id="contact" className="bg-neutral-50 rounded-3xl p-10 flex flex-col justify-between border border-neutral-100">
+                                    <div>
+                                        <h2 className="text-3xl font-bold mb-6">教育背景</h2>
+                                        <div className="space-y-8">
+                                            {DATA.education.map((edu, idx) => (
+                                                <div key={idx} className="flex items-start gap-4">
+                                                    <div className="mt-1 w-10 h-10 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-neutral-400 shrink-0"><GraduationCap size={20} /></div>
+                                                    <div>
+                                                        <h3 className="text-xl font-bold text-neutral-900">{edu.school}</h3>
+                                                        <p className="text-neutral-500 font-medium mb-2">{edu.major} | {edu.degree}</p>
+                                                        {edu.achievements && (
+                                                            <ul className="text-sm text-neutral-600 list-disc list-outside ml-4 space-y-1">
+                                                                {edu.achievements.map((ach, i) => (
+                                                                    <li key={i}>{ach}</li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="mt-12 pt-8 border-t border-neutral-200 flex flex-col gap-4">
+                                        <a href={`mailto:${DATA.profile.email}`} className="flex items-center gap-3 text-lg hover:text-neutral-600 transition-colors font-bold"><Mail size={20}/> {DATA.profile.email}</a>
+                                        <a href={`tel:${DATA.profile.phone}`} className="flex items-center gap-3 text-lg hover:text-neutral-600 transition-colors font-bold"><Phone size={20}/> {DATA.profile.phone}</a>
+                                        <div className="flex items-center gap-3 font-bold text-neutral-400"><MapPin size={20}/> Shanghai, China</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </RevealOnScroll>
+                    </section>
+
+                    <footer className="py-8 text-center font-bold text-xs text-neutral-400 border-t border-neutral-100 mt-12 uppercase tracking-wider">
+                        © {new Date().getFullYear()} Wang Minxun. Design Director Portfolio.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
